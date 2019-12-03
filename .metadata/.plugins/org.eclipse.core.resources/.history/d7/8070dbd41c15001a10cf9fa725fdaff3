@@ -1,0 +1,22 @@
+package com.springboot.inventoryservice.controller;
+
+import org.springframework.web.bind.annotation.RestController;
+
+import com.springboot.inventoryservice.services.InventoryService;
+
+import lombok.extern.slf4j.Slf4j;
+
+@RestController
+@Slf4j
+public class InventoryController {
+	
+	private final InventoryService inventoryService;
+
+	public InventoryController(InventoryService inventoryService) {
+		super();
+		this.inventoryService = inventoryService;
+	} 
+	
+	
+	
+}

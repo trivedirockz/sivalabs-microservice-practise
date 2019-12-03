@@ -1,0 +1,13 @@
+package com.springboot.service_registry;
+
+/**
+ * Hello world!
+ *
+ */
+public class ServiceRegistryApplication 
+{
+    public static void main( String[] args )
+    {
+        System.out.println( "Hello World!" );
+    }
+}

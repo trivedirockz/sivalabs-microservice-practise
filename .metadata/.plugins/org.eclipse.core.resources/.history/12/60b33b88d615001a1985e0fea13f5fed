@@ -1,0 +1,5 @@
+package com.springboot.inventoryservice.exceptions;
+
+public class InventoryNotFoundException {
+
+}

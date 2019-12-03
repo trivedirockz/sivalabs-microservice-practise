@@ -1,0 +1,13 @@
+package com.springboot.inventoryservice.entities;
+
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
+import lombok.Data;
+
+@Data
+@Entity
+@Table(name="inventory")
+public class InventoryItem {
+
+}

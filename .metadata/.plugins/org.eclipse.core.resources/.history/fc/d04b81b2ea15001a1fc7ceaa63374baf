@@ -1,0 +1,5 @@
+package com.springboot.catalogservice.models;
+
+public class ProductInventoryResponse {
+
+}
