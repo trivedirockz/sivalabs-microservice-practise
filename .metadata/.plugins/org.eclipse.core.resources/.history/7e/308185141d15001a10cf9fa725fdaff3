@@ -1,5 +1,0 @@
-package com.springboot.inventoryservice.entities;
-
-public class InventoryItem {
-
-}

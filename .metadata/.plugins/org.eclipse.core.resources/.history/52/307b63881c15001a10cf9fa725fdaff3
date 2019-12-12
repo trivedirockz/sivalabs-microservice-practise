@@ -1,5 +1,0 @@
-package com.springboot.inventoryservice.services;
-
-public class InventoryService {
-
-}

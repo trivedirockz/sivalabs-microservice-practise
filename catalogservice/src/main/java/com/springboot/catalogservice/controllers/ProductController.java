@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
 import com.springboot.catalogservice.entities.Product;
 import com.springboot.catalogservice.exceptions.ProductNotFoundException;
 import com.springboot.catalogservice.models.ProductInventoryResponse;
+import com.springboot.catalogservice.services.InventoryServiceClient;
 import com.springboot.catalogservice.services.ProductService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -26,11 +27,13 @@ public class ProductController {
 
 	private final ProductService productService;
 	private final RestTemplate restTemplate;
+	private final InventoryServiceClient inventoryServClient;
 
 	@Autowired
-	public ProductController(ProductService productService, RestTemplate restTemplate) {
+	public ProductController(ProductService productService, RestTemplate restTemplate, InventoryServiceClient inventoryServClient) {
 		this.productService = productService;
 		this.restTemplate = restTemplate;
+		this.inventoryServClient = inventoryServClient;
 	}
 	
 	@GetMapping("")
@@ -47,18 +50,36 @@ public class ProductController {
 		Optional<Product> product = productService.findProductByCode(code);
 		if (product.isPresent()) {
 			log.info("Fetching inventory level for product_code: "+code);
-            ResponseEntity<ProductInventoryResponse> itemResponseEntity =
-                    restTemplate.getForEntity("http://inventory-service/api/inventory/{code}",
-                                                ProductInventoryResponse.class,
-                                                code);
-            if(itemResponseEntity.getStatusCode() == HttpStatus.OK) {
-                Integer quantity = itemResponseEntity.getBody().getAvailableQuantity();
-                log.info("Available quantity: "+quantity);
-                product.get().setInStock(quantity> 0);
-            } else {
-                log.error("Unable to get inventory level for product_code: "+code +
-                ", StatusCode: "+itemResponseEntity.getStatusCode());
-            }
+			ResponseEntity<ProductInventoryResponse> itemResponseEntity = restTemplate.getForEntity(
+					"http://inventory-service/api/inventory/{code}", ProductInventoryResponse.class, code);
+			if (itemResponseEntity.getStatusCode() == HttpStatus.OK) {
+				Integer quantity = itemResponseEntity.getBody().getAvailableQuantity();
+				log.info("Available quantity: " + quantity);
+				product.get().setInStock(quantity > 0);
+			} else {
+				log.error("Unable to get inventory level for product_code: " + code + ", StatusCode: "
+						+ itemResponseEntity.getStatusCode());
+			}
+        } else {
+        	throw new ProductNotFoundException("Product with code [" + code + "] doesn't exist");
+        }
+		
+		return product.get();
+	}
+	
+	@GetMapping("/circuitBreaker/{code}")
+	public Product productByCodeWithCB(@PathVariable String code) {
+		log.info("Fetching Product Details by code with circuit breaker for the product : "+code);
+		Optional<Product> product = productService.findProductByCode(code);
+		if (product.isPresent()) {
+			log.info("Fetching inventory level for product_code: "+code);
+			Optional<ProductInventoryResponse> response = inventoryServClient.getProductInventoryByCode(code);
+			if (response.isPresent() && response.get().getAvailableQuantity() > 0) {
+				log.info("Available quantity : "+response.get().getAvailableQuantity());
+				product.get().setInStock(true);
+			}
+        } else {
+        	throw new ProductNotFoundException("Product with code [" + code + "] doesn't exist");
         }
 		
 		return product.get();
