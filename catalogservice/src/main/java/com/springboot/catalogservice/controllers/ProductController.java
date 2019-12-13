@@ -2,6 +2,7 @@ package com.springboot.catalogservice.controllers;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import com.springboot.catalogservice.exceptions.ProductNotFoundException;
 import com.springboot.catalogservice.models.ProductInventoryResponse;
 import com.springboot.catalogservice.services.InventoryServiceClient;
 import com.springboot.catalogservice.services.ProductService;
+import com.springboot.catalogservice.utils.MyThreadLocalsHolder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -73,7 +75,11 @@ public class ProductController {
 		Optional<Product> product = productService.findProductByCode(code);
 		if (product.isPresent()) {
 			log.info("Fetching inventory level for product_code: "+code);
+			String correlationId = UUID.randomUUID().toString();
+			MyThreadLocalsHolder.setCorrelationId(correlationId);
+			log.info("Before CorrelationID: "+ MyThreadLocalsHolder.getCorrelationId());
 			Optional<ProductInventoryResponse> response = inventoryServClient.getProductInventoryByCode(code);
+			log.info("After CorrelationID: "+ MyThreadLocalsHolder.getCorrelationId());
 			if (response.isPresent() && response.get().getAvailableQuantity() > 0) {
 				log.info("Available quantity : "+response.get().getAvailableQuantity());
 				product.get().setInStock(true);

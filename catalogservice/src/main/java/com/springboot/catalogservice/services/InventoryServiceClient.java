@@ -10,6 +10,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.springboot.catalogservice.models.ProductInventoryResponse;
+import com.springboot.catalogservice.utils.MyThreadLocalsHolder;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,6 +26,7 @@ public class InventoryServiceClient {
 	
 	@HystrixCommand(fallbackMethod="getDefaultProductInventoryResponse")
 	public Optional<ProductInventoryResponse> getProductInventoryByCode(String pCode) {
+		log.info("CorrelationID: "+ MyThreadLocalsHolder.getCorrelationId());
 		ResponseEntity<ProductInventoryResponse> itemResponseEntity = restTemplate
 				.getForEntity("http://inventory-service/api/inventory/{code}", ProductInventoryResponse.class, pCode);
 		if (itemResponseEntity.getStatusCode() == HttpStatus.OK) {
